@@ -41,6 +41,9 @@ insert into crime (incidenttype, incidentdate, clocation, cdescription, cstatus)
 values ('assault', '2024-08-16', '3 main st, villagetown', 'armed robbery at a store', 'open');
 insert into crime (incidenttype, incidentdate, clocation, cdescription, cstatus) 
 values ('robbery', '2023-05-17', '43,abc', 'at a house', 'open');
+insert into crime (incidenttype, incidentdate, clocation, cdescription, cstatus) 
+values ('homicide', '2024-09-20', '123 def st, town', 'a murder case', 'under investigation');
+
 
 
 insert into victim (crimeid, vname, contactinfo, injuries) 
@@ -108,20 +111,23 @@ where suspectid = 1;
 update suspect
 set sage = 35
 where suspectid = 2;
+update suspect
+set sage = 35
+where suspectid = 4;
+
 
 update suspect
 set sage = 27
 where suspectid = 3;
 
 select vName as [name], Age from Victim 
-union
+union all
 select sName, sAge from Suspect order by age desc 
 
 --6. Find the average age of persons involved in incidents.
 
 select avg(age) as average_age
-from (select age from victim union all select sage from suspect
-) as all_age
+from (select age from victim union all select sage from suspect) as all_age
 
 --7. List incident types and their counts, only for open cases. 
 
@@ -132,7 +138,7 @@ group by incidenttype,cstatus
 
 --8. Find persons with names containing 'Doe'. 
 
-select vname from victim where vname like '%doe%' union select sname from suspect where sname like '%doe%';
+select vname from victim where vname like '%doe%' union all select sname from suspect where sname like '%doe%';
 
 --9. Retrieve the names of persons involved in open cases and closed cases. 
 select v.vname 
@@ -140,7 +146,7 @@ from victim v
 join crime c on v.crimeid = c.crimeid
 where c.cstatus in ('open', 'closed')
 
-union 
+union all
 
 select s.sname 
 from suspect s
@@ -154,7 +160,7 @@ from crime
 where crimeid in (
     select crimeid 
     from victim 
-    where age in (30, 35) union
+    where age in (30, 35) union all
     select crimeid 
     from suspect 
     where sage in (30, 35)
@@ -182,7 +188,7 @@ having count(*) > 1;
 
 --13. List all incidents with suspects whose names also appear as victims in other incidents.
 
-select c.IncidentDate, c.IncidentType, c.cLocation, c.cDescription, c.cStatus,s.sname
+select c.IncidentDate, c.IncidentType, c.cLocation, c.cDescription, c.cStatus,s.sname,v.vname
 from Crime c
 JOIN Suspect s on s.CrimeID = c.CrimeID
 JOIN Victim v on v.vName = s.sName;
@@ -195,16 +201,18 @@ left join suspect s on c.crimeid = s.crimeid;
 
 --15. Find incidents where the suspect is older than any victim.
 
-select c.IncidentDate, c.IncidentType, c.cLocation, c.cDescription, c.cStatus,s.sname
+select c.IncidentDate, c.IncidentType, c.cLocation, c.cDescription, c.crimeid,s.sname
 from Crime c
 join Suspect s on c.CrimeID = s.CrimeID
 join Victim v on c.CrimeID = v.CrimeID
 where s.sAge > v.Age;
+select * from victim
+select * from suspect
 
 --16. Find suspects involved in multiple incidents: 
 select sname 
 from suspect 
-group by sname 
+group by sname
 having count(crimeid) > 1;
 
 --17. List incidents with no suspects involved. 
